@@ -42,12 +42,8 @@ public class LeksickiAnalizator {
                 return UniChars.KR_DO;
             default:
                 if(word==null) return null;
-                try {
-                    int check = Integer.parseInt(word);
-                    return UniChars.BROJ;
-                } catch (NumberFormatException e){
-                    return UniChars.IDN;
-                }
+                if(TokenListManager.isNum(word)) return UniChars.BROJ;
+                else return UniChars.IDN;
         }
     }
 
@@ -69,20 +65,56 @@ public class LeksickiAnalizator {
             parseTokens();
         }
 
+        public static boolean isNum(String word){
+            return isNumRecursive(word, 0);
+        }
+
+        public static boolean isNumRecursive(String word, int lastChecked){
+            int windowSize = 9;
+            if(lastChecked > word.length()) return true;
+            try{
+                Integer.parseInt(word.substring(lastChecked,
+                        lastChecked+windowSize > word.length() ? word.length() : lastChecked+windowSize
+                ));
+                return true && isNumRecursive(word, lastChecked+windowSize);
+            } catch(Exception e) {
+                return false;
+            }
+        }
+
+        public void parseIdnWithNum(String word){
+            int firstChar = 0;
+            while(isNum(word.substring(0,firstChar+1))){
+                firstChar++;
+            }
+
+            TokenNode num = new TokenNode(word.substring(0, firstChar), getLineNum());
+            TokenNode idn = new TokenNode(word.substring(firstChar, word.length()), getLineNum());
+
+            getTokenList().add(num);
+            getTokenList().add(idn);
+        }
+
         public void parseTokens(){
             String[] words = Arrays.stream(line.split(" "))
                     .filter(word -> !word.isEmpty())
                     .toArray(String[]::new);
             for(String word : words){
-                TokenNode curr = new TokenNode(word, getLineNum());
-                getTokenList().add(curr);
+
+                if(wordToUni(word)==UniChars.IDN && isNum(word.substring(0,1))) {
+                    parseIdnWithNum(word);
+                } else {
+                    TokenNode curr = new TokenNode(word, getLineNum());
+                    getTokenList().add(curr);
+                }
             }
         }
 
         public void prepareLine(){
             removeComment();
-            line.replaceAll("\t", " ");
-            line.replaceAll("\n", " ");
+
+            setLine(line.replaceAll("\t", " "));
+            setLine(line.replaceAll("\n", " "));
 
             for(String word : operators){
                 setLine(line.replaceAll(word, " " + word + " "));
@@ -208,6 +240,7 @@ public class LeksickiAnalizator {
 //            System.out.println(System.getProperty("user.dir"));
 //            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream("src/example.txt")));
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+//            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream("C:\\Users\\mih\\Documents\\GitHub\\ppj\\test_cases\\MASNO-TESTIRANJE1\\2014-15\\1-l\\test14\\test.in")));
 
             String line = reader.readLine();
             int lineCounter = 1;
@@ -221,6 +254,7 @@ public class LeksickiAnalizator {
             }
 
             tokenList.printAll();
+            reader.close();
         } catch (Exception e){
             e.printStackTrace();
         }
