@@ -205,9 +205,9 @@ public class LeksickiAnalizator {
 
     public static void main(String[] args) {
         try {
-            System.out.println(System.getProperty("user.dir"));
-            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream("src/example.txt")));
-//            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+//            System.out.println(System.getProperty("user.dir"));
+//            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream("src/example.txt")));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
             String line = reader.readLine();
             int lineCounter = 1;
