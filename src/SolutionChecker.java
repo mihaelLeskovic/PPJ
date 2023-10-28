@@ -6,6 +6,13 @@ import java.util.LinkedList;
 
 public class SolutionChecker {
 
+    /*
+    javaFileToClass
+    ----------------
+    solutionClassName - String of the name of the compiled file
+    sourceDir - where the .java file we want to compile is
+    outDir - where the compiled .class file will end up
+     */
     static void javaFileToClass(String solutionClassName, String sourceDir, String outDir) throws Exception{
         String sourceFile = solutionClassName + ".java";
 
@@ -55,6 +62,11 @@ public class SolutionChecker {
         }
     }
 
+    /*
+    findWorkFileName
+    ----------------
+    returns the name of the file with the wanted suffix in currDir
+     */
     static String findWorkFileName(String currDir, String suffix) throws Exception{
         String[] files = new File(currDir).list();
         for(String file : files){
@@ -65,7 +77,11 @@ public class SolutionChecker {
 
     /*
     massRun
-    ---------------
+    ----------------
+    solutionClassName - string of the name of the tested file
+    classDir - string location of compiled classes
+    testDir - string location of where the tests are
+    outputFileName - full file (including the suffix) where the output will be
     returns linked list of errors caught
      */
     static LinkedList<String> massRun(String solutionClassName, String classDir, String testDir, String outputFileName){
@@ -95,6 +111,11 @@ public class SolutionChecker {
         return errorList;
     }
 
+    /*
+    compareFile
+    ----------------
+    compares file1 and file2 line by line and throws exception with message telling the first line with a mismatch
+     */
     static void compareFile(String file1, String file2) throws Exception {
         BufferedReader br1 = new BufferedReader(new InputStreamReader(new FileInputStream(file1)));
         BufferedReader br2 = new BufferedReader(new InputStreamReader(new FileInputStream(file2)));
@@ -116,6 +137,11 @@ public class SolutionChecker {
         br2.close();
     }
 
+    /*
+    massCompare
+    ----------------
+    in testDir, opens folder by folder, finding the .out file and comparing it to the set outputFileName file we generated
+     */
     static LinkedList<String> massCompare(String testDir, String outputFileName){
         LinkedList<String> errors = new LinkedList<>();
         String[] files = new File(testDir).list();
@@ -140,26 +166,43 @@ public class SolutionChecker {
 
     public static void main(String[] args) {
 
+        //ime klase koju se testira
         String solutionClassName = "LeksickiAnalizator";
-        String currDir = System.getProperty("user.dir");
 
-        String javaSourceDir = currDir + "\\src";
-        String classDir = currDir + "\\test_cases\\compiled_class";
-        String testCaseDir = currDir + "\\test_cases";
+        //folder u koji se compile-a .java file u .class
+        String classFolder = "\\test_cases\\compiled_class";
 
+        //polje koje pokazuje na sve lokacije na kojima su test case-ovi
+        //na tom mjestu trebaju biti jedino folderi koji u sebi imaju .in i .out fileove i u koje ce ici ono sto nas kod generira
         String[] testDirs = new String[]{
                 "C:\\Users\\mih\\Documents\\GitHub\\ppj\\test_cases\\MASNO-TESTIRANJE1\\2014-15\\1-l",
                 "C:\\Users\\mih\\Documents\\GitHub\\ppj\\test_cases\\MASNO-TESTIRANJE1\\2014-15\\2-l",
                 "C:\\Users\\mih\\Documents\\GitHub\\ppj\\test_cases\\MASNO-TESTIRANJE1\\2016-17\\1-t",
                 "C:\\Users\\mih\\Documents\\GitHub\\ppj\\test_cases\\MASNO-TESTIRANJE1\\2016-17\\2-t"
         };
+
+        //ime i sufiks file-a u koji nas kod generira svoj output
         String myOutputFile = "test.gen";
 
+        //-----------------------------------------------------
+        //DALJE NE MIJENJATI
+        //-----------------------------------------------------
+
+        String currDir = System.getProperty("user.dir");
+        String javaSourceDir = currDir + "\\src";
+        String classDir = currDir + classFolder;
+
+
+        //compilation
         try{
             javaFileToClass(solutionClassName, javaSourceDir, classDir);
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        //---------------------------
+
+        //running all the code on all the input files
 
         LinkedList<String> runErrors = new LinkedList<>();
         for(String testDir : testDirs){
@@ -172,6 +215,10 @@ public class SolutionChecker {
             System.out.println(err);
         }
         System.out.println("--------------------------");
+
+        //---------------------------
+
+        //comparing all the code-generated files and all the pre-generated files
 
         LinkedList<String> compareErrors = new LinkedList<>();
         for(String testDir : testDirs){
