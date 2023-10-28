@@ -1,10 +1,9 @@
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 import java.io.*;
-import java.nio.file.Path;
 import java.util.LinkedList;
 
-public class SolutionChecker {
+public class SolutionCheckerMultithreaded {
 
     static void javaFileToClass(String solutionClassName, String sourceDir, String outDir) throws Exception{
         String sourceFile = solutionClassName + ".java";
@@ -85,7 +84,7 @@ public class SolutionChecker {
                             classDir,
                             currDir + "\\" + workFileName + ".in",
                             currDir + "\\" + outputFileName
-                    );
+                            );
                 } catch (Exception e){
                     errorList.add(e.getMessage() + "||" + currDir);
                 }
