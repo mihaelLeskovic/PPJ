@@ -6,6 +6,78 @@ import java.util.LinkedList;
 
 public class SolutionChecker {
 
+    public static void main(String[] args) {
+
+        //ime klase koju se testira
+        String solutionClassName = "LeksickiAnalizator";
+
+        //direktorij u koji se compile-a .java file u .class
+        //relativna putanja
+        //moze se ostaviti ovakav kakav je
+        String classFolder = "\\test_cases\\compiled_class";
+
+
+        //ime i sufiks file-a u koji nas kod generira svoj output
+        String myOutputFile = "test.gen";
+
+        //polje koje pokazuje na sve lokacije na kojima su test case-ovi
+        //na tom mjestu trebaju biti jedino folderi koji u sebi imaju .in i .out fileove i u koje ce ici ono sto nas kod generira
+        String[] testDirs = new String[]{
+                "C:\\Users\\mih\\Documents\\GitHub\\ppj\\test_cases\\MASNO-TESTIRANJE1\\2014-15\\1-l",
+                "C:\\Users\\mih\\Documents\\GitHub\\ppj\\test_cases\\MASNO-TESTIRANJE1\\2014-15\\2-l",
+                "C:\\Users\\mih\\Documents\\GitHub\\ppj\\test_cases\\MASNO-TESTIRANJE1\\2016-17\\1-t",
+                "C:\\Users\\mih\\Documents\\GitHub\\ppj\\test_cases\\MASNO-TESTIRANJE1\\2016-17\\2-t"
+        };
+
+        //-----------------------------------------------------
+        //DALJE NE MIJENJATI
+        //-----------------------------------------------------
+
+        String currDir = System.getProperty("user.dir");
+        String javaSourceDir = currDir + "\\src";
+        String classDir = currDir + classFolder;
+
+
+        //compilation
+        try{
+            javaFileToClass(solutionClassName, javaSourceDir, classDir);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        //---------------------------
+
+        //running all the code on all the input files
+
+        LinkedList<String> runErrors = new LinkedList<>();
+        for(String testDir : testDirs){
+            runErrors.addAll(massRun(solutionClassName, classDir, testDir, myOutputFile));
+        }
+
+        System.out.println("RUN ERRORS: ");
+        if(runErrors.isEmpty()) System.out.println("no errors :)");
+        for(String err : runErrors){
+            System.out.println(err);
+        }
+        System.out.println("--------------------------");
+
+        //---------------------------
+
+        //comparing all the code-generated files and all the pre-generated files
+
+        LinkedList<String> compareErrors = new LinkedList<>();
+        for(String testDir : testDirs){
+            compareErrors.addAll(massCompare(testDir, myOutputFile));
+        }
+
+        System.out.println("COMPARE ERRORS: ");
+        if(compareErrors.isEmpty()) System.out.println("no errors :)");
+        for(String err : compareErrors){
+            System.out.println(err);
+        }
+        System.out.println("--------------------------");
+    }
+
     /*
     javaFileToClass
     ----------------
@@ -162,74 +234,5 @@ public class SolutionChecker {
         }
 
         return errors;
-    }
-
-    public static void main(String[] args) {
-
-        //ime klase koju se testira
-        String solutionClassName = "LeksickiAnalizator";
-
-        //folder u koji se compile-a .java file u .class
-        String classFolder = "\\test_cases\\compiled_class";
-
-        //polje koje pokazuje na sve lokacije na kojima su test case-ovi
-        //na tom mjestu trebaju biti jedino folderi koji u sebi imaju .in i .out fileove i u koje ce ici ono sto nas kod generira
-        String[] testDirs = new String[]{
-                "C:\\Users\\mih\\Documents\\GitHub\\ppj\\test_cases\\MASNO-TESTIRANJE1\\2014-15\\1-l",
-                "C:\\Users\\mih\\Documents\\GitHub\\ppj\\test_cases\\MASNO-TESTIRANJE1\\2014-15\\2-l",
-                "C:\\Users\\mih\\Documents\\GitHub\\ppj\\test_cases\\MASNO-TESTIRANJE1\\2016-17\\1-t",
-                "C:\\Users\\mih\\Documents\\GitHub\\ppj\\test_cases\\MASNO-TESTIRANJE1\\2016-17\\2-t"
-        };
-
-        //ime i sufiks file-a u koji nas kod generira svoj output
-        String myOutputFile = "test.gen";
-
-        //-----------------------------------------------------
-        //DALJE NE MIJENJATI
-        //-----------------------------------------------------
-
-        String currDir = System.getProperty("user.dir");
-        String javaSourceDir = currDir + "\\src";
-        String classDir = currDir + classFolder;
-
-
-        //compilation
-        try{
-            javaFileToClass(solutionClassName, javaSourceDir, classDir);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        //---------------------------
-
-        //running all the code on all the input files
-
-        LinkedList<String> runErrors = new LinkedList<>();
-        for(String testDir : testDirs){
-            runErrors.addAll(massRun(solutionClassName, classDir, testDir, myOutputFile));
-        }
-
-        System.out.println("RUN ERRORS: ");
-        if(runErrors.isEmpty()) System.out.println("no errors :)");
-        for(String err : runErrors){
-            System.out.println(err);
-        }
-        System.out.println("--------------------------");
-
-        //---------------------------
-
-        //comparing all the code-generated files and all the pre-generated files
-
-        LinkedList<String> compareErrors = new LinkedList<>();
-        for(String testDir : testDirs){
-            compareErrors.addAll(massCompare(testDir, myOutputFile));
-        }
-
-        System.out.println("COMPARE ERRORS: ");
-        if(compareErrors.isEmpty()) System.out.println("no errors :)");
-        for(String err : compareErrors){
-            System.out.println(err);
-        }
-        System.out.println("--------------------------");
     }
 }
