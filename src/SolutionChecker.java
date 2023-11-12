@@ -2,36 +2,40 @@ import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 import java.io.*;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 
 public class SolutionChecker {
 
     public static void main(String[] args) {
 
-        //ime klase koju se testira
-        String solutionClassName = "LeksickiAnalizator";
+        //OBAVEZNO: ovu klasu staviti u ISTI src folder gdje je i klasa koju testirate
+        //testirano dobro radi na jdk17 i jdk21
 
-        //direktorij u koji se compile-a .java file u .class
-        //relativna putanja
+        //ime klase koju se testira
+        String solutionClassName = "SintaksniAnalizator";
+
+        //folder u koji se compile-a .java file u .class
         //moze se ostaviti ovakav kakav je
         String classFolder = "\\test_cases\\compiled_class";
 
 
-        //ime i sufiks file-a u koji nas kod generira svoj output
+        //ime i sufiks file-a u koji kod generira svoj output
         String myOutputFile = "test.gen";
 
-        //polje koje pokazuje na sve lokacije na kojima su test case-ovi
-        //na tom mjestu trebaju biti jedino folderi koji u sebi imaju .in i .out fileove i u koje ce ici ono sto nas kod generira
-        String[] testDirs = new String[]{
-                "C:\\Users\\mih\\Documents\\GitHub\\ppj\\test_cases\\MASNO-TESTIRANJE1\\2014-15\\1-l",
-                "C:\\Users\\mih\\Documents\\GitHub\\ppj\\test_cases\\MASNO-TESTIRANJE1\\2014-15\\2-l",
-                "C:\\Users\\mih\\Documents\\GitHub\\ppj\\test_cases\\MASNO-TESTIRANJE1\\2016-17\\1-t",
-                "C:\\Users\\mih\\Documents\\GitHub\\ppj\\test_cases\\MASNO-TESTIRANJE1\\2016-17\\2-t"
-        };
+        //ime i sufiks file-a u koji kod generira svoj output
+        String inputFile = "test.in";
+
+        //direktorij koji sadrzi sve direktorije s test case-vima
+        String masterDirectory = "C:\\Users\\dews\\Documents\\GitHub\\ppj\\test_cases\\ULTIMATIVNO-TESTIRANJE2";
+
+        String[] testDirs = directoryCrawler(masterDirectory, inputFile);
 
         //-----------------------------------------------------
         //DALJE NE MIJENJATI
         //-----------------------------------------------------
+        long startTime = System.currentTimeMillis();
 
         String currDir = System.getProperty("user.dir");
         String javaSourceDir = currDir + "\\src";
@@ -76,6 +80,11 @@ public class SolutionChecker {
             System.out.println(err);
         }
         System.out.println("--------------------------");
+
+        long endTime = System.currentTimeMillis();
+        long elapsedTime = endTime - startTime;
+
+        System.out.println("Time taken: " + elapsedTime + "milliseconds");
     }
 
     /*
@@ -145,6 +154,31 @@ public class SolutionChecker {
             if(file.endsWith(suffix)) return file.replace(suffix, "");
         }
         throw new Exception("missing \"" + suffix + "\" file");
+    }
+
+    public static String[] directoryCrawler(String origin, String inputName) {
+        List<String> result = new ArrayList<>();
+        crawlDirectory(new File(origin), result, inputName);
+        return result.toArray(new String[0]);
+    }
+    private static void crawlDirectory(File directory, List<String> result, String inputName) {
+        File[] files = directory.listFiles();
+
+        if (files != null) {
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    // Recursively crawl subdirectories
+                    crawlDirectory(file, result, inputName);
+                } else if (file.getName().equals(inputName)) {
+                    // Found a file named "test.in", add its parent directory to the result
+                    String parentDir = file.getParent();
+                    String parentParentDir = new File(parentDir).getParent();
+                    if (!result.contains(parentParentDir)) {
+                        result.add(parentParentDir);
+                    }
+                }
+            }
+        }
     }
 
     /*
