@@ -132,6 +132,7 @@ public class SintaksniAnalizator {
         }
 
         void throwException() throws Exception {
+            if(currTokenNode==null) throw new Exception("err kraj");
             throw new Exception("err " + currTokenNode.toString());
         }
 
@@ -155,17 +156,18 @@ public class SintaksniAnalizator {
             currTreeNode = currTreeNode.children.getLast();
             TreeNode localTreeNode = currTreeNode;
 
-            naredba();
 
-            currTreeNode = localTreeNode;
-
-            if(currTokenNode != null
-                    && (currTokenNode.getUniChar()==UniChars.KR_ZA
-                        || currTokenNode.getUniChar()==UniChars.IDN)){
+            if(currTokenNode == null || currTokenNode.uniChar.equals(UniChars.KR_AZ)){
+                currTreeNode.addChild("$", false);
+            } else if(currTokenNode.getUniChar()==UniChars.KR_ZA
+                        || currTokenNode.getUniChar()==UniChars.IDN){
+                naredba();
+                currTreeNode = localTreeNode;
                 listaNaredbi();
             } else {
-                currTreeNode.children.add(new TreeNode("$", false));
+                throwException();
             }
+
         }
 
         void naredba() throws Exception{
@@ -231,14 +233,18 @@ public class SintaksniAnalizator {
         void e_lista() throws Exception {
             currTreeNode.addChild("<E_lista>", true);
             currTreeNode = currTreeNode.children.getLast();
-            TreeNode localTreeNode = currTreeNode;
+
+            if(currTokenNode == null){
+                currTreeNode.addChild("$", false);
+                return;
+            }
 
             switch(currTokenNode.uniChar) {
-                case UniChars.OP_PLUS:
+                case OP_PLUS:
                     checkAndAdd(UniChars.OP_PLUS);
                     e();
                     break;
-                case UniChars.OP_MINUS:
+                case OP_MINUS:
                     checkAndAdd(UniChars.OP_MINUS);
                     e();
                     break;
@@ -260,21 +266,25 @@ public class SintaksniAnalizator {
         }
 
         void t_lista() throws Exception{
-            currTreeNode.addChild("<T_LISTA>", true);
+            currTreeNode.addChild("<T_lista>", true);
             currTreeNode = currTreeNode.children.getLast();
 
+            if(currTokenNode == null){
+                currTreeNode.addChild("$", false);
+                return;
+            }
+
             switch(currTokenNode.uniChar){
-                case UniChars.OP_PUTA:
+                case OP_PUTA:
                     checkAndAdd(UniChars.OP_PUTA);
                     t();
                     break;
-                case UniChars.OP_DIJELI:
+                case OP_DIJELI:
                     checkAndAdd(UniChars.OP_DIJELI);
                     t();
                     break;
                 default:
                     currTreeNode.addChild("$", false);
-                    return;
             }
         }
 
@@ -283,27 +293,33 @@ public class SintaksniAnalizator {
             currTreeNode = currTreeNode.children.getLast();
             TreeNode localTreeNode = currTreeNode;
 
+            if(currTokenNode == null){
+                throwException();
+            }
+
             switch(currTokenNode.uniChar){
-                case UniChars.IDN:
+                case IDN:
                     checkAndAdd(UniChars.IDN);
                     break;
-                case UniChars.BROJ:
+                case BROJ:
                     checkAndAdd(UniChars.BROJ);
                     break;
-                case UniChars.OP_PLUS:
+                case OP_PLUS:
                     checkAndAdd(UniChars.OP_PLUS);
                     p();
                     break;
-                case UniChars.OP_MINUS:
+                case OP_MINUS:
                     checkAndAdd(UniChars.OP_MINUS);
                     p();
                     break;
-                case UniChars.L_ZAGRADA:
+                case L_ZAGRADA:
                     checkAndAdd(UniChars.L_ZAGRADA);
                     e();
                     currTreeNode = localTreeNode;
                     checkAndAdd(UniChars.D_ZAGRADA);
                     break;
+                default:
+                    throwException();
             }
         }
 
@@ -391,8 +407,8 @@ public class SintaksniAnalizator {
     }
 
     public static void main(String[] args) throws Exception {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream("src/example.txt")));
-//        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+//        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream("src/example.txt")));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
         String line = reader.readLine();
 
