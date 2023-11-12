@@ -65,6 +65,20 @@ public class SintaksniAnalizator {
         public GenerativeTree(TreeNode root) {
             this.root = root;
         }
+
+        public void printTree(){
+            recPrint(getRoot(), 0);
+        }
+
+        public void recPrint(TreeNode node, int spaces){
+            for(int i=0; i<spaces; i++){
+                System.out.print(" ");
+            }
+            System.out.println(node.content);
+            for(TreeNode child : node.children){
+                recPrint(child, spaces+1);
+            }
+        }
     }
 
     static class TreeNode {
@@ -76,6 +90,14 @@ public class SintaksniAnalizator {
             this.content = content;
             this.variable = variable;
             children = new LinkedList<>();
+        }
+
+        public void addChild(String cContent, boolean cVariable){
+            children.add(new TreeNode(cContent, cVariable));
+        }
+
+        public void addChild(TreeNode cNode){
+            children.add(cNode);
         }
 
         void print(int depth){
@@ -93,37 +115,32 @@ public class SintaksniAnalizator {
         }
     }
 
-
-    //Converting these into methods:
-    //<program> ::= <lista_naredbi>
-    //<lista_naredbi> ::= <naredba> <lista_naredbi>
-    //<lista_naredbi> ::= $
-    //<naredba> ::= <naredba_pridruzivanja>
-    //<naredba> ::= <za_petlja>
-    //<naredba_pridruzivanja> ::= IDN OP_PRIDRUZI <E>
-    //<za_petlja> ::= KR_ZA IDN KR_OD <E> KR_DO <E> <lista_naredbi> KR_AZ
-    //<E> ::= <T> <E_lista>
-    //<E_lista> ::= OP_PLUS <E>
-    //<E_lista> ::= OP_MINUS <E>
-    //<E_lista> ::= $
-    //<T> ::= <P> <T_lista>
-    //<T_lista> ::= OP_PUTA <T>
-    //<T_lista> ::= OP_DIJELI <T>
-    //<T_lista> ::= $
-    //<P> ::= OP_PLUS <P>
-    //<P> ::= OP_MINUS <P>
-    //<P> ::= L_ZAGRADA <E> D_ZAGRADA
-    //<P> ::= IDN
-    //<P> ::= BROJ
-
     static class TokenListConverter {
         TokenList tokenList;
         GenerativeTree generativeTree;
         TokenNode currTokenNode;
         TreeNode currTreeNode;
 
+        public GenerativeTree getGenerativeTree() {
+            return generativeTree;
+        }
+
+        void run(TokenList tokenList) throws Exception{
+            this.tokenList = tokenList;
+            this.currTokenNode = tokenList.head;
+            program();
+        }
+
         void throwException() throws Exception {
             throw new Exception("err " + currTokenNode.toString());
+        }
+
+        void checkAndAdd(UniChars uniChar) throws Exception{
+            if(currTokenNode == null) throw new Exception("err kraj");
+            if(currTokenNode.uniChar == uniChar){
+                currTreeNode.addChild(currTokenNode.toString(), false);
+                currTokenNode = currTokenNode.getNext();
+            } else throwException();
         }
 
         void program() throws Exception{
@@ -134,21 +151,161 @@ public class SintaksniAnalizator {
         }
 
         void listaNaredbi() throws Exception{
-            currTreeNode.children.add(new TreeNode("<lista_naredbi>", true));
+            currTreeNode.addChild("<lista_naredbi>", true);
             currTreeNode = currTreeNode.children.getLast();
             TreeNode localTreeNode = currTreeNode;
 
-//            naredba();
+            naredba();
 
             currTreeNode = localTreeNode;
 
-            if(currTokenNode != null){
+            if(currTokenNode != null
+                    && (currTokenNode.getUniChar()==UniChars.KR_ZA
+                        || currTokenNode.getUniChar()==UniChars.IDN)){
                 listaNaredbi();
             } else {
                 currTreeNode.children.add(new TreeNode("$", false));
             }
         }
 
+        void naredba() throws Exception{
+            currTreeNode.addChild("<naredba>", true);
+            currTreeNode = currTreeNode.children.getLast();
+
+            if(currTokenNode.uniChar == UniChars.KR_ZA){
+                za_petlja();
+            } else if(currTokenNode.uniChar == UniChars.IDN){
+                naredba_pridruzivanja();
+            } else {
+                throwException();
+            }
+        }
+
+        void naredba_pridruzivanja() throws Exception{
+            currTreeNode.addChild("<naredba_pridruzivanja>", true);
+            currTreeNode = currTreeNode.children.getLast();
+
+            checkAndAdd(UniChars.IDN);
+            checkAndAdd(UniChars.OP_PRIDRUZI);
+            e();
+        }
+
+        void za_petlja() throws Exception{
+            currTreeNode.addChild("<za_petlja>", true);
+            currTreeNode = currTreeNode.children.getLast();
+            TreeNode localTreeNode = currTreeNode;
+
+            checkAndAdd(UniChars.KR_ZA);
+            checkAndAdd(UniChars.IDN);
+            checkAndAdd(UniChars.KR_OD);
+
+            e();
+
+            currTreeNode = localTreeNode;
+
+            checkAndAdd(UniChars.KR_DO);
+
+            e();
+
+            currTreeNode = localTreeNode;
+
+            listaNaredbi();
+
+            currTreeNode = localTreeNode;
+
+            checkAndAdd(UniChars.KR_AZ);
+        }
+
+        void e() throws Exception{
+            currTreeNode.addChild("<E>", true);
+            currTreeNode = currTreeNode.children.getLast();
+            TreeNode localTreeNode = currTreeNode;
+
+            t();
+
+            currTreeNode = localTreeNode;
+
+            e_lista();
+        }
+
+        void e_lista() throws Exception {
+            currTreeNode.addChild("<E_lista>", true);
+            currTreeNode = currTreeNode.children.getLast();
+            TreeNode localTreeNode = currTreeNode;
+
+            switch(currTokenNode.uniChar) {
+                case UniChars.OP_PLUS:
+                    checkAndAdd(UniChars.OP_PLUS);
+                    e();
+                    break;
+                case UniChars.OP_MINUS:
+                    checkAndAdd(UniChars.OP_MINUS);
+                    e();
+                    break;
+                default:
+                    currTreeNode.addChild("$", false);
+            }
+        }
+
+        void t() throws Exception{
+            currTreeNode.addChild("<T>", true);
+            currTreeNode = currTreeNode.children.getLast();
+            TreeNode localTreeNode = currTreeNode;
+
+            p();
+
+            currTreeNode = localTreeNode;
+
+            t_lista();
+        }
+
+        void t_lista() throws Exception{
+            currTreeNode.addChild("<T_LISTA>", true);
+            currTreeNode = currTreeNode.children.getLast();
+
+            switch(currTokenNode.uniChar){
+                case UniChars.OP_PUTA:
+                    checkAndAdd(UniChars.OP_PUTA);
+                    t();
+                    break;
+                case UniChars.OP_DIJELI:
+                    checkAndAdd(UniChars.OP_DIJELI);
+                    t();
+                    break;
+                default:
+                    currTreeNode.addChild("$", false);
+                    return;
+            }
+        }
+
+        void p() throws Exception{
+            currTreeNode.addChild("<P>", true);
+            currTreeNode = currTreeNode.children.getLast();
+            TreeNode localTreeNode = currTreeNode;
+
+            switch(currTokenNode.uniChar){
+                case UniChars.IDN:
+                    checkAndAdd(UniChars.IDN);
+                    break;
+                case UniChars.BROJ:
+                    checkAndAdd(UniChars.BROJ);
+                    break;
+                case UniChars.OP_PLUS:
+                    checkAndAdd(UniChars.OP_PLUS);
+                    p();
+                    break;
+                case UniChars.OP_MINUS:
+                    checkAndAdd(UniChars.OP_MINUS);
+                    p();
+                    break;
+                case UniChars.L_ZAGRADA:
+                    checkAndAdd(UniChars.L_ZAGRADA);
+                    e();
+                    currTreeNode = localTreeNode;
+                    checkAndAdd(UniChars.D_ZAGRADA);
+                    break;
+            }
+        }
 
 
     }
@@ -246,6 +403,13 @@ public class SintaksniAnalizator {
             line = reader.readLine();
         }
 
+        TokenListConverter tlc = new TokenListConverter();
+        try {
+            tlc.run(tokenList);
+            tlc.getGenerativeTree().printTree();
+        } catch (Exception e){
+            System.out.println(e.getMessage());
+        }
 
     }
 
