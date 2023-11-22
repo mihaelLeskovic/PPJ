@@ -28,13 +28,14 @@ public class SolutionChecker {
         String inputFile = "test.in";
 
         //direktorij koji sadrzi sve direktorije s test case-vima
-        String masterDirectory = "C:\\Users\\dews\\Documents\\GitHub\\ppj\\test_cases\\ULTIMATIVNO-TESTIRANJE2";
-
-        String[] testDirs = directoryCrawler(masterDirectory, inputFile);
+        String masterDirectory = "C:\\Users\\example\\Documents\\GitHub\\ppj\\test_cases\\ULTIMATIVNO-TESTIRANJE2";
 
         //-----------------------------------------------------
         //DALJE NE MIJENJATI
         //-----------------------------------------------------
+
+        String[] testDirs = directoryCrawler(masterDirectory, inputFile);
+
         long startTime = System.currentTimeMillis();
 
         String currDir = System.getProperty("user.dir");

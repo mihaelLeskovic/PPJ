@@ -35,11 +35,11 @@ public class SolutionCheckerMultithreaded {
         //direktorij koji sadrzi sve direktorije s test case-vima
         String masterDirectory = "C:\\Users\\dews\\Documents\\GitHub\\ppj\\test_cases\\ULTIMATIVNO-TESTIRANJE2";
 
-        String[] testDirs = directoryCrawler(masterDirectory, inputFile);
-
         //-----------------------------------------------------
         //DALJE NE MIJENJATI
         //-----------------------------------------------------
+        
+        String[] testDirs = directoryCrawler(masterDirectory, inputFile);
 
         long startTime = System.currentTimeMillis();
 
